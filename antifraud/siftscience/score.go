@@ -4,7 +4,8 @@ import (
 	"strings"
 )
 
-const OK = "OK"
+const ErrorOK = "OK"
+const SuccessStatus = 0
 
 // Siftscience score
 type Score struct {
@@ -32,7 +33,7 @@ type AccountAbuse struct {
 
 // Check if score response is Ok
 func (score *Score) IsOk() bool {
-	if strings.ToUpper(score.ErrorMessage) == OK && score.Status == 0 {
+	if strings.ToUpper(score.ErrorMessage) == ErrorOK && score.Status == SuccessStatus {
 		return true
 	}
 

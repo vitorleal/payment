@@ -1,45 +1,37 @@
-package cielo
+package stone
 
 import (
 	"encoding/json"
 	"fmt"
+
 	"github.com/dghubble/sling"
-	"github.com/satori/go.uuid"
+	//"github.com/ingresse/payment/gateway"
 )
 
-var (
-	Production = Environment{
-		Url:   "https://api.cieloecommerce.cielo.com.br",
-		Query: "https://apiquery.cieloecommerce.cielo.com.br",
-	}
+var Production = Environment{
+	Url: "https://transaction.stone.com.br",
+}
 
-	Sandbox = Environment{
-		Url:   "https://apisandbox.cieloecommerce.cielo.com.br",
-		Query: "https://apiquerysandbox.cieloecommerce.cielo.com.br",
-	}
-)
+const basePath = "/Sale"
 
-var basePath = "/1/sales/"
-
-// Cielo merchant
+// Stone merchant
 type Merchant struct {
-	Id, Key string
+	Key string
 }
 
-// Cielo environment
+// Stone environment
 type Environment struct {
-	Url, Query string
+	Url string
 }
 
-// Cielo client
+// Stone client
 type Client struct {
 	Api      *sling.Sling
-	Query    *sling.Sling
 	Merchant Merchant
 	Env      Environment
 }
 
-// New Cielo APIs clients
+// Create a stone sale
 func New(merchant Merchant, env Environment) *Client {
 	api := sling.New().Client(nil)
 
@@ -47,13 +39,10 @@ func New(merchant Merchant, env Environment) *Client {
 	api.Add("Accept-Encoding", "gzip")
 	api.Add("Content-Type", "application/json")
 	api.Add("User-Agent", "Ingresse-Payment/1.0")
-	api.Add("MerchantId", merchant.Id)
 	api.Add("MerchantKey", merchant.Key)
-	api.Add("RequestId", uuid.NewV4().String())
 
 	client := Client{
 		Api:      api.New().Base(env.Url),
-		Query:    api.New().Base(env.Query),
 		Merchant: merchant,
 		Env:      env,
 	}
@@ -61,7 +50,7 @@ func New(merchant Merchant, env Environment) *Client {
 	return &client
 }
 
-// Create a cielo sale
+// Create a stone sale
 func (client *Client) NewSale(sale *Sale) (*Sale, error) {
 	body, err := json.Marshal(sale)
 	fmt.Printf("%s", body)
@@ -69,21 +58,24 @@ func (client *Client) NewSale(sale *Sale) (*Sale, error) {
 	responseSale := new(Sale)
 	_, err = client.Api.Post(basePath).BodyJSON(sale).ReceiveSuccess(responseSale)
 
+	fmt.Printf("%+v", responseSale)
+
 	return responseSale, err
 }
 
-// Capture a cielo sale
+// Capture a stone sale
 func (client *Client) CaptureSale(id string) (*Sale, error) {
 	responseSale := new(Sale)
-	_, err := client.Api.Put(basePath + id + "/capture").ReceiveSuccess(responseSale)
+	_, err := client.Api.Get(basePath + "/Capture").ReceiveSuccess(responseSale)
 
 	return responseSale, err
 }
 
-// Get a cielo sale
+// Get a stone sale
 func (client *Client) GetSale(id string) (*Sale, error) {
 	responseSale := new(Sale)
-	_, err := client.Query.Get(basePath + id).ReceiveSuccess(responseSale)
+
+	_, err := client.Api.Get(basePath + "/Query/OrderKey=" + id).ReceiveSuccess(responseSale)
 
 	return responseSale, err
 }

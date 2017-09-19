@@ -5,11 +5,14 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/ingresse/payment/acquirer/cielo"
+	"github.com/ingresse/payment/acquirer/stone"
+	"github.com/ingresse/payment/gateway"
 )
 
 // Acquirer controller
 type AcquirerController struct {
 	Cielo *cielo.Client
+	Stone *stone.Client
 }
 
 // Init the controller
@@ -19,51 +22,73 @@ func NewController() *AcquirerController {
 			Id:  "7df78036-fe0a-4909-9315-933ccb3ab5cd",
 			Key: "QDWVJXLMPKWFXWDMWLWAGUDHBHMVQVHJOWLQYZGQ",
 		}, cielo.Sandbox),
+		stone.New(stone.Merchant{
+			Key: "f2a1f485-cfd4-49f5-8862-0ebc438ae923",
+		}, stone.Production),
 	}
 }
 
 // Execute a payment
 func (controller *AcquirerController) Pay(c *gin.Context) {
-	//body := c.MustGet("body").(payment.Payment)
+	payment := c.MustGet("body").(gateway.Payment)
 
-	//order := cielo.Order{
-	//MerchantOrderId: body.Id,
-	//Customer: &cielo.Customer{
-	//Name: body.Customer.Name,
-	//},
-	//Payment: &cielo.Payment{
-	//Type:           body.Payment.Type,
-	//Amount:         body.Payment.Amount,
-	//Installments:   body.Payment.Installments,
-	//SoftDescriptor: body.Payment.SoftDescriptor,
-	//CreditCard: &cielo.CreditCard{
-	//CardNumber:     body.Payment.CreditCard.Number,
-	//Holder:         body.Payment.CreditCard.Holder,
-	//ExpirationDate: body.Payment.CreditCard.Expiration,
-	//SecurityCode:   body.Payment.CreditCard.CVV,
-	//Brand:          body.Payment.CreditCard.Brand,
-	//},
-	//},
-	//}
+	if payment.IsCielo() {
+		c.JSON(http.StatusOK, gin.H{
+			"acquirer": "cielo",
+			"order":    nil,
+		})
 
-	//response, err := client.NewOrder(&order)
+		return
+	}
 
-	//if err != nil {
-	//c.AbortWithStatusJSON(400, gin.H{
-	//"error": err,
-	//})
-	//return
-	//}
+	if payment.IsStone() {
+		cardTransaction := stone.CreditCardTransaction{
+			AmountInCents: payment.Amount,
+			CreditCard: &stone.CreditCard{
+				CreditCardBrand:  payment.CreditCard.Brand,
+				CreditCardNumber: payment.CreditCard.Number,
+				HolderName:       payment.CreditCard.Holder,
+				ExpMonth:         payment.CreditCard.Expiration[:2],
+				ExpYear:          payment.CreditCard.Expiration[3:],
+				SecurityCode:     payment.CreditCard.CVV,
+			},
+			Options: &stone.Options{
+				PaymentMethodCode: 1,
+			},
+		}
 
-	c.JSON(http.StatusOK, gin.H{
-		"acquirer": "cielo",
-		"order":    nil,
+		sale := stone.Sale{
+			CreditCardTransactionCollection: []*stone.CreditCardTransaction{&cardTransaction},
+			Order: &stone.Order{
+				OrderReference: payment.Id,
+			},
+		}
+
+		response, err := controller.Stone.NewSale(&sale)
+
+		if err != nil {
+			c.AbortWithStatusJSON(400, gin.H{
+				"error": err,
+			})
+			return
+		}
+
+		c.JSON(http.StatusOK, gin.H{
+			"acquirer": "stone",
+			"order":    response,
+		})
+
+		return
+	}
+
+	c.AbortWithStatusJSON(400, gin.H{
+		"error": "Invalid acquirer " + payment.Acquirer,
 	})
 }
 
 // Capture an existing transaction
 func (controller *AcquirerController) Capture(c *gin.Context) {
-	response, err := controller.Cielo.CaptureOrder(c.Param("id"))
+	response, err := controller.Cielo.CaptureSale(c.Param("id"))
 
 	if err != nil {
 		c.AbortWithStatusJSON(400, gin.H{
@@ -80,7 +105,7 @@ func (controller *AcquirerController) Capture(c *gin.Context) {
 
 // Get data of an existing transaction
 func (controller *AcquirerController) Get(c *gin.Context) {
-	response, err := controller.Cielo.GetOrder(c.Param("id"))
+	response, err := controller.Cielo.GetSale(c.Param("id"))
 
 	if err != nil {
 		c.AbortWithStatusJSON(400, gin.H{

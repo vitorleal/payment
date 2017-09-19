@@ -16,6 +16,10 @@ var (
 	}
 )
 
+const (
+	Name = "siftscience"
+)
+
 // Siftscience environment
 type Environment struct {
 	Url, Key string
