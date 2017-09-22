@@ -32,39 +32,20 @@ func NewController() *AcquirerController {
 func (controller *AcquirerController) Pay(c *gin.Context) {
 	payment := c.MustGet("body").(gateway.Payment)
 
-	if payment.IsCielo() {
+	// Handle cielo payment
+	if payment.IsAcquirer(cielo.Name) {
 		c.JSON(http.StatusOK, gin.H{
-			"acquirer": "cielo",
-			"order":    nil,
+			"acquirer": cielo.Name,
+			"sale":     nil,
 		})
 
 		return
 	}
 
-	if payment.IsStone() {
-		cardTransaction := stone.CreditCardTransaction{
-			AmountInCents: payment.Amount,
-			CreditCard: &stone.CreditCard{
-				CreditCardBrand:  payment.CreditCard.Brand,
-				CreditCardNumber: payment.CreditCard.Number,
-				HolderName:       payment.CreditCard.Holder,
-				ExpMonth:         payment.CreditCard.Expiration[:2],
-				ExpYear:          payment.CreditCard.Expiration[3:],
-				SecurityCode:     payment.CreditCard.CVV,
-			},
-			Options: &stone.Options{
-				PaymentMethodCode: 1,
-			},
-		}
-
-		sale := stone.Sale{
-			CreditCardTransactionCollection: []*stone.CreditCardTransaction{&cardTransaction},
-			Order: &stone.Order{
-				OrderReference: payment.Id,
-			},
-		}
-
-		response, err := controller.Stone.NewSale(&sale)
+	// handle stone payment
+	if payment.IsAcquirer(stone.Name) {
+		sale := stone.FormatSale(&payment)
+		response, err := controller.Stone.NewSale(sale)
 
 		if err != nil {
 			c.AbortWithStatusJSON(400, gin.H{
@@ -74,13 +55,14 @@ func (controller *AcquirerController) Pay(c *gin.Context) {
 		}
 
 		c.JSON(http.StatusOK, gin.H{
-			"acquirer": "stone",
-			"order":    response,
+			"acquirer": stone.Name,
+			"sale":     response,
 		})
 
 		return
 	}
 
+	// acquirer not implemented
 	c.AbortWithStatusJSON(400, gin.H{
 		"error": "Invalid acquirer " + payment.Acquirer,
 	})
@@ -99,7 +81,7 @@ func (controller *AcquirerController) Capture(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{
 		"acquirer": "cielo",
-		"order":    response,
+		"sale":     response,
 	})
 }
 
@@ -116,6 +98,6 @@ func (controller *AcquirerController) Get(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{
 		"acquirer": "cielo",
-		"order":    response,
+		"sale":     response,
 	})
 }

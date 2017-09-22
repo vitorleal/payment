@@ -7,6 +7,9 @@ import (
 	"github.com/satori/go.uuid"
 )
 
+const Name = "cielo"
+const BasePath = "/1/sales/"
+
 var (
 	Production = Environment{
 		Url:   "https://api.cieloecommerce.cielo.com.br",
@@ -18,8 +21,6 @@ var (
 		Query: "https://apiquerysandbox.cieloecommerce.cielo.com.br",
 	}
 )
-
-var basePath = "/1/sales/"
 
 // Cielo merchant
 type Merchant struct {
@@ -67,7 +68,7 @@ func (client *Client) NewSale(sale *Sale) (*Sale, error) {
 	fmt.Printf("%s", body)
 
 	responseSale := new(Sale)
-	_, err = client.Api.Post(basePath).BodyJSON(sale).ReceiveSuccess(responseSale)
+	_, err = client.Api.Post(BasePath).BodyJSON(sale).ReceiveSuccess(responseSale)
 
 	return responseSale, err
 }
@@ -75,7 +76,7 @@ func (client *Client) NewSale(sale *Sale) (*Sale, error) {
 // Capture a cielo sale
 func (client *Client) CaptureSale(id string) (*Sale, error) {
 	responseSale := new(Sale)
-	_, err := client.Api.Put(basePath + id + "/capture").ReceiveSuccess(responseSale)
+	_, err := client.Api.Put(BasePath + id + "/capture").ReceiveSuccess(responseSale)
 
 	return responseSale, err
 }
@@ -83,7 +84,7 @@ func (client *Client) CaptureSale(id string) (*Sale, error) {
 // Get a cielo sale
 func (client *Client) GetSale(id string) (*Sale, error) {
 	responseSale := new(Sale)
-	_, err := client.Query.Get(basePath + id).ReceiveSuccess(responseSale)
+	_, err := client.Query.Get(BasePath + id).ReceiveSuccess(responseSale)
 
 	return responseSale, err
 }

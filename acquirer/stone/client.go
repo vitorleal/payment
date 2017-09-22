@@ -5,14 +5,14 @@ import (
 	"fmt"
 
 	"github.com/dghubble/sling"
-	//"github.com/ingresse/payment/gateway"
 )
+
+const Name = "stone"
+const BasePath = "/Sale"
 
 var Production = Environment{
 	Url: "https://transaction.stone.com.br",
 }
-
-const basePath = "/Sale"
 
 // Stone merchant
 type Merchant struct {
@@ -56,7 +56,7 @@ func (client *Client) NewSale(sale *Sale) (*Sale, error) {
 	fmt.Printf("%s", body)
 
 	responseSale := new(Sale)
-	_, err = client.Api.Post(basePath).BodyJSON(sale).ReceiveSuccess(responseSale)
+	_, err = client.Api.Post(BasePath).BodyJSON(sale).ReceiveSuccess(responseSale)
 
 	fmt.Printf("%+v", responseSale)
 
@@ -66,7 +66,7 @@ func (client *Client) NewSale(sale *Sale) (*Sale, error) {
 // Capture a stone sale
 func (client *Client) CaptureSale(id string) (*Sale, error) {
 	responseSale := new(Sale)
-	_, err := client.Api.Get(basePath + "/Capture").ReceiveSuccess(responseSale)
+	_, err := client.Api.Get(BasePath + "/Capture").ReceiveSuccess(responseSale)
 
 	return responseSale, err
 }
@@ -75,7 +75,7 @@ func (client *Client) CaptureSale(id string) (*Sale, error) {
 func (client *Client) GetSale(id string) (*Sale, error) {
 	responseSale := new(Sale)
 
-	_, err := client.Api.Get(basePath + "/Query/OrderKey=" + id).ReceiveSuccess(responseSale)
+	_, err := client.Api.Get(BasePath + "/Query/OrderKey=" + id).ReceiveSuccess(responseSale)
 
 	return responseSale, err
 }

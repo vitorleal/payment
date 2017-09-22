@@ -5,11 +5,6 @@ import (
 	"strings"
 )
 
-const (
-	Cielo = "cielo"
-	Stone = "stone"
-)
-
 type Payment struct {
 	Id            string              `json:"id" binding:"required"`
 	Acquirer      string              `json:"acquirer" binding:"required"`
@@ -67,18 +62,27 @@ type Item struct {
 	Quantity  uint32 `json:"quantity,omitempty"`
 }
 
-// Check if payment accquirer is Stone
-func (payment *Payment) IsStone() bool {
-	if strings.ToLower(payment.Acquirer) == strings.ToLower(Stone) {
+// Compare payment accquirer to check if is the same
+func (payment *Payment) IsAcquirer(acquirer string) bool {
+	if strings.ToLower(payment.Acquirer) == strings.ToLower(acquirer) {
 		return true
 	}
 
 	return false
 }
 
-// Check if payment acquirer is Cielo
-func (payment *Payment) IsCielo() bool {
-	if strings.ToLower(payment.Acquirer) == strings.ToLower(Cielo) {
+// Check if payment is with creditcard
+func (payment *Payment) WithCredicard() bool {
+	if payment.CreditCard != nil {
+		return true
+	}
+
+	return false
+}
+
+// Check if payment with bankBillet
+func (payment *Payment) WithBankBillet() bool {
+	if payment.BankingBillet != nil && !payment.WithCredicard() {
 		return true
 	}
 
