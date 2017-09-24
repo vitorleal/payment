@@ -6,12 +6,14 @@ import (
 
 // Create a new sale from a gateway payment
 func FormatSale(payment *gateway.Payment) *Sale {
+	// Create a new sale
 	newSale := Sale{
 		Order: &Order{
 			OrderReference: payment.Id,
 		},
 	}
 
+	// Create the customer address
 	address := &Address{
 		AddressType: "Residential",
 		City:        payment.Customer.Address.City,
@@ -23,6 +25,7 @@ func FormatSale(payment *gateway.Payment) *Sale {
 		ZipCode:     payment.Customer.Address.ZipCode,
 	}
 
+	// Create the customer
 	buyer := &Buyer{
 		Name:              payment.Customer.Name,
 		DocumentType:      "CPF",
@@ -32,7 +35,7 @@ func FormatSale(payment *gateway.Payment) *Sale {
 
 	newSale.Buyer = buyer
 
-	// If payment with creditcard
+	// If payment with CreditCard
 	if payment.WithCredicard() {
 		cardTransaction := CreditCardTransaction{
 			AmountInCents: payment.Amount,
@@ -57,12 +60,19 @@ func FormatSale(payment *gateway.Payment) *Sale {
 		newSale.CreditCardTransactionCollection = []*CreditCardTransaction{&cardTransaction}
 	}
 
-	// If payment with bankbillet
+	// If payment with BankingBillet
 	if payment.WithBankBillet() {
-		bankBilling := BoletoTransaction{}
+		bankBilling := BoletoTransaction{
+			AmountInCents:        payment.Amount,
+			BankNumber:           "033",
+			Instructions:         payment.BankingBillet.Instructions,
+			TransactionReference: "BoletoComBuyerRemessa",
+		}
 
+		// BankingBillet options
 		bankBilling.Options = &Options{
-			PaymentMethodCode: 1,
+			PaymentMethodCode:               1,
+			DaysToAddInBoletoExpirationDate: 5,
 		}
 	}
 
