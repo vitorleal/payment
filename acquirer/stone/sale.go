@@ -13,10 +13,10 @@ type Sale struct {
 	Buyer                           *Buyer                   `json:",omitempty"`
 
 	// For the response
-	CreditCardTransactionResultCollection []*CreditCardTransaction `json:",omitempty"`
-	BoletoTransactionResultCollection     []*BoletoTransaction     `json:",omitempty"`
-	OrderResult                           *Order                   `json:",omitempty"`
-	BuyerKey                              string                   `json:",omitempty"`
+	*SaleResponse
+
+	// For the sale GET data response
+	*SaleGetResponse
 }
 
 // -----------------------------
@@ -130,4 +130,28 @@ type ErrorItem struct {
 	ErrorCode    uint32 `json:",omitempty"`
 	ErrorField   string `json:",omitempty"`
 	SeverityCode string `json:",omitempty"`
+}
+
+// Stone POST response data
+// -----------------------------
+type SaleResponse struct {
+	CreditCardTransactionResultCollection []*CreditCardTransaction `json:",omitempty"`
+	BoletoTransactionResultCollection     []*BoletoTransaction     `json:",omitempty"`
+	OrderResult                           *Order                   `json:",omitempty"`
+	BuyerKey                              string                   `json:",omitempty"`
+}
+
+// Stone GET response data
+// -----------------------------
+
+type SaleGetResponse struct {
+	SaleDataCollection []*SaleData `json:",omitempty"`
+	SaleDataCount      uint32      `json:",omitempty"`
+}
+
+type SaleData struct {
+	CreditCardTransactionDataCollection []*CreditCardTransaction `json:",omitempty"`
+	BoletoTransactionDataCollection     []*BoletoTransaction     `json:",omitempty"`
+	OrderData                           *Order                   `json:",omitempty"`
+	BuyerKey                            string                   `json:",omitempty"`
 }
