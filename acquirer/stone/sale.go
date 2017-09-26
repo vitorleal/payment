@@ -5,12 +5,18 @@ type Sale struct {
 	RequestKey   string `json:",omitempty"`
 	InternalTime uint32 `json:",omitempty"`
 
-	ErrorReport interface{} `json:",omitempty"`
+	ErrorReport *ErrorReport `json:",omitempty"`
 
 	CreditCardTransactionCollection []*CreditCardTransaction `json:",omitempty"`
 	BoletoTransactionCollection     []*BoletoTransaction     `json:",omitempty"`
 	Order                           *Order                   `json:",omitempty"`
 	Buyer                           *Buyer                   `json:",omitempty"`
+
+	// For the response
+	CreditCardTransactionResultCollection []*CreditCardTransaction `json:",omitempty"`
+	BoletoTransactionResultCollection     []*BoletoTransaction     `json:",omitempty"`
+	OrderResult                           *Order                   `json:",omitempty"`
+	BuyerKey                              string                   `json:",omitempty"`
 }
 
 // -----------------------------
@@ -34,6 +40,7 @@ type CreditCardTransaction struct {
 	ThirdPartyAffiliationCode   string `json:",omitempty"`
 	RefundedAmountInCents       uint32 `json:",omitempty"`
 	PaymentMethodName           string `json:",omitempty"`
+	VoidedAmountInCents         uint32 `json:",omitempty"`
 
 	AmountInCents    uint32      `json:",omitempty"`
 	CreditCard       *CreditCard `json:",omitempty"`
@@ -43,7 +50,7 @@ type CreditCardTransaction struct {
 
 type CreditCard struct {
 	InstantBuyKey          string `json:",omitempty"`
-	IsExpiredCreditCard    string `json:",omitempty"`
+	IsExpiredCreditCard    bool   `json:",omitempty"`
 	MaskedCreditCardNumber string `json:",omitempty"`
 
 	CreditCardBrand  string `json:",omitempty"`
@@ -57,11 +64,21 @@ type CreditCard struct {
 // -----------------------------
 
 type BoletoTransaction struct {
-	AmountInCents        uint32   `json:",omitempty"`
-	BankNumber           string   `json:",omitempty"`
-	Instructions         string   `json:",omitempty"`
-	TransactionReference string   `json:",omitempty"`
-	Options              *Options `json:",omitempty"`
+	AcquirerReturnCode      string `json:",omitempty"`
+	AcquirerReturnMessage   string `json:",omitempty"`
+	Barcode                 string `json:",omitempty"`
+	BoletoTransactionStatus string `json:",omitempty"`
+	BoletoUrl               string `json:",omitempty"`
+	DocumentNumber          string `json:",omitempty"`
+	NossoNumero             string `json:",omitempty"`
+	Success                 bool   `json:",omitempty"`
+	TransactionKey          string `json:",omitempty"`
+	TransactionReference    string `json:",omitempty"`
+
+	AmountInCents uint32   `json:",omitempty"`
+	BankNumber    string   `json:",omitempty"`
+	Instructions  string   `json:",omitempty"`
+	Options       *Options `json:",omitempty"`
 }
 
 // -----------------------------
@@ -99,4 +116,18 @@ type Address struct {
 	State       string `json:",omitempty"`
 	Street      string `json:",omitempty"`
 	ZipCode     string `json:",omitempty"`
+}
+
+// -----------------------------
+
+type ErrorReport struct {
+	Category            string       `json:",omitempty"`
+	ErrorItemCollection []*ErrorItem `json:",omitempty"`
+}
+
+type ErrorItem struct {
+	Description  string `json:",omitempty"`
+	ErrorCode    uint32 `json:",omitempty"`
+	ErrorField   string `json:",omitempty"`
+	SeverityCode string `json:",omitempty"`
 }

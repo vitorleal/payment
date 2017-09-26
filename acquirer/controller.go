@@ -17,18 +17,21 @@ type AcquirerController struct {
 
 // Init the controller
 func NewController() *AcquirerController {
-	return &AcquirerController{
-		cielo.New(cielo.Merchant{
-			Id:  "7df78036-fe0a-4909-9315-933ccb3ab5cd",
-			Key: "QDWVJXLMPKWFXWDMWLWAGUDHBHMVQVHJOWLQYZGQ",
-		}, cielo.Sandbox),
-		stone.New(stone.Merchant{
-			Key: "f2a1f485-cfd4-49f5-8862-0ebc438ae923",
-		}, stone.Production),
-	}
+	// Instantiate a new Cielo client
+	cieloClient := cielo.New(cielo.Merchant{
+		Id:  "7df78036-fe0a-4909-9315-933ccb3ab5cd",
+		Key: "QDWVJXLMPKWFXWDMWLWAGUDHBHMVQVHJOWLQYZGQ",
+	}, cielo.Sandbox)
+
+	// Instantiate a new Stone client
+	stoneClient := stone.New(stone.Merchant{
+		Key: "f2a1f485-cfd4-49f5-8862-0ebc438ae923",
+	}, stone.Production)
+
+	return &AcquirerController{cieloClient, stoneClient}
 }
 
-// Execute a payment
+// Create a new payment
 func (controller *AcquirerController) Pay(c *gin.Context) {
 	payment := c.MustGet("body").(gateway.Payment)
 
@@ -47,13 +50,15 @@ func (controller *AcquirerController) Pay(c *gin.Context) {
 		sale := stone.FormatSale(&payment)
 		response, err := controller.Stone.NewSale(sale)
 
-		if err != nil {
+		// If error exist
+		if err.ErrorReport != nil {
 			c.AbortWithStatusJSON(400, gin.H{
 				"error": err,
 			})
 			return
 		}
 
+		// Return the transaction
 		c.JSON(http.StatusOK, gin.H{
 			"acquirer": stone.Name,
 			"sale":     response,
@@ -87,17 +92,23 @@ func (controller *AcquirerController) Capture(c *gin.Context) {
 
 // Get data of an existing transaction
 func (controller *AcquirerController) Get(c *gin.Context) {
-	response, err := controller.Cielo.GetSale(c.Param("id"))
+	id := c.Param("id")
 
-	if err != nil {
+	response, err := controller.Stone.GetSale(id)
+
+	// If error exist
+	if err.ErrorReport != nil {
 		c.AbortWithStatusJSON(400, gin.H{
-			"error": err.Error(),
+			"error": err,
 		})
 		return
 	}
 
+	// Return the transaction
 	c.JSON(http.StatusOK, gin.H{
-		"acquirer": "cielo",
+		"acquirer": stone.Name,
 		"sale":     response,
 	})
+
+	return
 }

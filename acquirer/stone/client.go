@@ -51,16 +51,16 @@ func New(merchant Merchant, env Environment) *Client {
 }
 
 // Create a stone sale
-func (client *Client) NewSale(sale *Sale) (*Sale, error) {
-	body, err := json.Marshal(sale)
+func (client *Client) NewSale(sale *Sale) (*Sale, *Sale) {
+	body, _ := json.Marshal(sale)
 	fmt.Printf("%s", body)
 
 	responseSale := new(Sale)
-	_, err = client.Api.Post(BasePath).BodyJSON(sale).ReceiveSuccess(responseSale)
+	responseError := new(Sale)
 
-	fmt.Printf("%+v", responseSale)
+	_, _ = client.Api.Post(BasePath).BodyJSON(sale).Receive(responseSale, responseError)
 
-	return responseSale, err
+	return responseSale, responseError
 }
 
 // Capture a stone sale
@@ -72,10 +72,11 @@ func (client *Client) CaptureSale(id string) (*Sale, error) {
 }
 
 // Get a stone sale
-func (client *Client) GetSale(id string) (*Sale, error) {
+func (client *Client) GetSale(id string) (*Sale, *Sale) {
 	responseSale := new(Sale)
+	responseError := new(Sale)
 
-	_, err := client.Api.Get(BasePath + "/Query/OrderKey=" + id).ReceiveSuccess(responseSale)
+	_, _ = client.Api.Get(BasePath+"/Query/OrderKey="+id).Receive(responseSale, responseError)
 
-	return responseSale, err
+	return responseSale, responseError
 }
