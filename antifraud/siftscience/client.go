@@ -16,28 +16,28 @@ var (
 	}
 )
 
-const (
-	Name = "siftscience"
+const Name = "siftscience"
+
+type (
+	// Environment represents the siftscience environment
+	Environment struct {
+		Url, Key string
+	}
+
+	// Client represents the siftscience api client
+	Client struct {
+		Api *sling.Sling
+		Env Environment
+	}
+
+	// Params represents the siftscience query params
+	Params struct {
+		ApiKey     string `url:"api_key,omitempty"`
+		AbuseTypes string `url:"abuse_types,omitempty"`
+	}
 )
 
-// Siftscience environment
-type Environment struct {
-	Url, Key string
-}
-
-// Siftscience client
-type Client struct {
-	Api *sling.Sling
-	Env Environment
-}
-
-// Siftscience query params
-type Params struct {
-	ApiKey     string `url:"api_key,omitempty"`
-	AbuseTypes string `url:"abuse_types,omitempty"`
-}
-
-// New Siftscience API client
+// New will create a new siftscience API client
 func New(env Environment) *Client {
 	api := sling.New().Client(nil)
 	api.Add("User-Agent", "Ingresse-Payment/1.0")
@@ -50,9 +50,9 @@ func New(env Environment) *Client {
 	return &client
 }
 
-// Get user score
+// GetScore will get the user score in the siftscience api
 func (sift *Client) GetScore(id string) (*Score, error) {
-	score := new(Score)
+	score := &Score{}
 
 	params := &Params{
 		ApiKey:     sift.Env.Key,

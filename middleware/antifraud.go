@@ -3,14 +3,16 @@ package middleware
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/ingresse/payment/antifraud/siftscience"
-	"github.com/ingresse/payment/gateway"
+	g "github.com/ingresse/payment/gateway"
 )
 
-// Antifraud middleware
+// Antifraud is a middleware to validate customer
+// cleaerance in the antifrauds services
 func Antifraud() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		body := c.MustGet("body").(gateway.Payment)
+		body := c.MustGet("body").(g.Payment)
 
+		// If not antifraud declared in the body continue
 		if body.Antifraud == nil {
 			c.Next()
 			return

@@ -1,9 +1,11 @@
 package stone
 
 import (
+	"fmt"
 	g "github.com/ingresse/payment/gateway"
 )
 
+// SaleResponse represents an Stone api response
 type SaleResponse struct {
 	Sale
 
@@ -15,27 +17,30 @@ type SaleResponse struct {
 
 // FormatResponse use data from a SaleResponse to create a Gateway Payment
 func (s *SaleResponse) FormatResponse() *g.Response {
-	response := g.Response{}
-
+	response := new(g.Response)
 	response.Acquirer = Name
+
+	fmt.Printf("%+v", s)
 
 	if s.OrderResult != nil {
 		response.Id = s.OrderResult.OrderReference
 		response.AuthorizationCode = s.OrderResult.OrderKey
 	}
 
-	if s.CreditCardTransactionResultCollection != nil {
+	// If CreditCard
+	if len(s.CreditCardTransactionResultCollection) > 0 {
 		transaction := s.CreditCardTransactionResultCollection[0]
 
 		response.Amount = transaction.AuthorizedAmountInCents
 		response.CreditCard = &g.CreditCard{}
 	}
 
-	if s.BoletoTransactionResultCollection != nil {
+	// If BankingBillet
+	if len(s.BoletoTransactionResultCollection) > 0 {
 		transaction := s.BoletoTransactionResultCollection[0]
 
 		response.Amount = transaction.AuthorizedAmountInCents
 	}
 
-	return &response
+	return response
 }

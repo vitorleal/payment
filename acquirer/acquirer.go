@@ -2,23 +2,24 @@ package acquirer
 
 import (
 	"github.com/ingresse/payment/acquirer/stone"
-	"github.com/ingresse/payment/gateway"
+	e "github.com/ingresse/payment/errors"
+	g "github.com/ingresse/payment/gateway"
 )
 
-// Acquirer Client interface
+// ClientInterface is the interface for differents acquirers
 type ClientInterface interface {
-	Get(id string) (*gateway.Response, error)
-
-	Authorize(payment *gateway.Payment) (*gateway.Response, error)
-	Capture(id string) (*gateway.Response, error)
-	Cancel(payment *gateway.Payment) (*gateway.Response, error)
+	Get(id string) (*g.Response, *e.ApiError)
+	Capture(id string) (*g.Response, *e.ApiError)
+	Authorize(payment *g.Payment) (*g.Response, *e.ApiError)
+	Cancel(payment *g.Payment) (*g.Response, *e.ApiError)
 }
 
+// Acquirer represents the struct of the acquirers
 type Acquirer struct {
 	Client ClientInterface
 }
 
-// Create new Acquirer based on the acquirer name
+// NewAcquirer create a new Acquirer based on the acquirer name
 func NewAcquirer(name string) *Acquirer {
 	return &Acquirer{
 		Client: stone.NewClient(stone.Merchant{
@@ -27,17 +28,22 @@ func NewAcquirer(name string) *Acquirer {
 	}
 }
 
-// Authorize a payment using the Acquirer client
-func (acquirer *Acquirer) Authorize(payment *gateway.Payment) (*gateway.Response, error) {
-	return acquirer.Client.Authorize(payment)
+// Authorize will autorize a payment using the Acquirer client
+func (a *Acquirer) Authorize(payment *g.Payment) (*g.Response, *e.ApiError) {
+	return a.Client.Authorize(payment)
 }
 
-// Capture an autorized payment using the Acquirer client
-func (acquirer *Acquirer) Capture(id string) (*gateway.Response, error) {
-	return acquirer.Client.Capture(id)
+// Capture will capture an autorized payment using the Acquirer client
+func (a *Acquirer) Capture(id string) (*g.Response, *e.ApiError) {
+	return a.Client.Capture(id)
 }
 
-// Get a payment using the Acquirer client
-func (acquirer *Acquirer) Get(id string) (*gateway.Response, error) {
-	return acquirer.Client.Get(id)
+// Get will a payment using the Acquirer client
+func (a *Acquirer) Get(id string) (*g.Response, *e.ApiError) {
+	return a.Client.Get(id)
+}
+
+// Cancel will cancel an authorized or payed payment using the Acquirer client
+func (a *Acquirer) Cancel(payment *g.Payment) (*g.Response, *e.ApiError) {
+	return a.Client.Cancel(payment)
 }

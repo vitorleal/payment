@@ -4,7 +4,6 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/ingresse/payment/errors"
 	"github.com/ingresse/payment/gateway"
 )
 
@@ -20,8 +19,7 @@ func (controller *Controller) Authorize(c *gin.Context) {
 
 	// If error exist
 	if err != nil {
-		e := errors.BadRequest(err)
-		c.AbortWithStatusJSON(e.Code, e.Details)
+		c.AbortWithStatusJSON(err.Status, err.Json())
 		return
 	}
 
@@ -41,9 +39,7 @@ func (controller *Controller) Capture(c *gin.Context) {
 	response, err := acquirer.Capture(payment.Id)
 
 	if err != nil {
-		c.AbortWithStatusJSON(400, gin.H{
-			"error": err,
-		})
+		c.AbortWithStatusJSON(err.Status, err.Json())
 		return
 	}
 
@@ -62,9 +58,7 @@ func (controller *Controller) Get(c *gin.Context) {
 
 	// If error exist
 	if err != nil {
-		c.AbortWithStatusJSON(400, gin.H{
-			"error": err,
-		})
+		c.AbortWithStatusJSON(err.Status, err.Json())
 		return
 	}
 

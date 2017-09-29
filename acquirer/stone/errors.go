@@ -19,9 +19,13 @@ const (
 	CancelErrorCode int    = 2003
 )
 
-// FormatError return a new error
-func BadRequestError(message string, report *ErrorReport, code int) error {
-	e := errors.NewApiError(http.StatusBadRequest, message, code, nil)
+// BadRequestError return a new badRequest error with custom message and code
+func BadRequestError(message string, report *ErrorReport, code int) *errors.ApiError {
+	e := errors.NewApiError(code, message, http.StatusBadRequest, nil)
+
+	for _, reportError := range report.ErrorItemCollection {
+		e.AddDetails("details", reportError.Description)
+	}
 
 	return e
 }
