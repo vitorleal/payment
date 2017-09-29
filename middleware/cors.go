@@ -14,6 +14,7 @@ func Cors() gin.HandlerFunc {
 		c.Writer.Header().Set("Access-Control-Allow-Headers", "X-Requested-With, Content-Type, Origin, Authorization, Accept, Client-Security-Token, Accept-Encoding, x-access-token")
 		c.Writer.Header().Set("Access-Control-Expose-Headers", "Content-Length")
 
+		// If an OPTIONS request end the request with only a 200 response
 		if c.Request.Method == http.MethodOptions {
 			c.AbortWithStatus(http.StatusOK)
 

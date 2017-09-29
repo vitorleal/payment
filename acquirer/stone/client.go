@@ -1,13 +1,10 @@
 package stone
 
 import (
-	"encoding/json"
-	"fmt"
-
 	"github.com/dghubble/sling"
+	g "github.com/ingresse/payment/gateway"
 )
 
-const Name = "stone"
 const BasePath = "/Sale"
 
 var Production = Environment{
@@ -25,14 +22,15 @@ type Environment struct {
 }
 
 // Stone client
+// implements Acquirer ClientInterface
 type Client struct {
 	Api      *sling.Sling
 	Merchant Merchant
 	Env      Environment
 }
 
-// Create a stone sale
-func New(merchant Merchant, env Environment) *Client {
+// Create a stone client
+func NewClient(merchant Merchant, env Environment) *Client {
 	api := sling.New().Client(nil)
 
 	api.Add("Accept", "application/json")
@@ -50,33 +48,76 @@ func New(merchant Merchant, env Environment) *Client {
 	return &client
 }
 
-// Create a stone sale
-func (client *Client) NewSale(sale *Sale) (*Sale, *Sale) {
-	body, _ := json.Marshal(sale)
-	fmt.Printf("%s", body)
+// Authorize authorize a sale in Stone
+func (client *Client) Authorize(payment *g.Payment) (*g.Response, error) {
+	body := Sale{}
+	body.FromPayment(payment)
 
-	responseSale := new(Sale)
-	responseError := new(Sale)
+	sale := SaleResponse{}
+	saleError := SaleError{}
 
-	_, _ = client.Api.Post(BasePath).BodyJSON(sale).Receive(responseSale, responseError)
+	client.Api.Post(BasePath).BodyJSON(body).Receive(sale, saleError)
 
-	return responseSale, responseError
+	// If error
+	if saleError.ErrorReport != nil {
+		err := BadRequestError(AuthorizeError, saleError.ErrorReport, AuthorizeErrorCode)
+		return nil, err
+	}
+
+	response := sale.FormatResponse()
+	return response, nil
 }
 
-// Capture a stone sale
-func (client *Client) CaptureSale(id string) (*Sale, error) {
-	responseSale := new(Sale)
-	_, err := client.Api.Get(BasePath + "/Capture").ReceiveSuccess(responseSale)
+// Capture capture an authorized sale in Stone
+func (client *Client) Capture(id string) (*g.Response, error) {
+	sale := SaleResponse{}
+	saleError := SaleError{}
 
-	return responseSale, err
+	client.Api.Get(BasePath+"/Capture").Receive(sale, saleError)
+
+	// If error
+	if saleError.ErrorReport != nil {
+		err := BadRequestError(CaptureError, saleError.ErrorReport, CaptureErrorCode)
+		return nil, err
+	}
+
+	response := sale.FormatResponse()
+	return response, nil
 }
 
-// Get a stone sale
-func (client *Client) GetSale(id string) (*Sale, *Sale) {
-	responseSale := new(Sale)
-	responseError := new(Sale)
+// Get get sale information in Stone
+func (client *Client) Get(id string) (*g.Response, error) {
+	sale := SaleDataResponse{}
+	saleError := SaleError{}
 
-	_, _ = client.Api.Get(BasePath+"/Query/OrderKey="+id).Receive(responseSale, responseError)
+	client.Api.Get(BasePath+"/Query/OrderKey="+id).Receive(sale, saleError)
 
-	return responseSale, responseError
+	// If error
+	if saleError.ErrorReport != nil {
+		err := BadRequestError(GetSaleError, saleError.ErrorReport, GetSaleErrorCode)
+		return nil, err
+	}
+
+	response := sale.FormatResponse()
+	return response, nil
+}
+
+// Cancel cancel an authorized or payed sale in Stone
+func (client *Client) Cancel(payment *g.Payment) (*g.Response, error) {
+	body := Sale{}
+	body.FromPayment(payment)
+
+	sale := SaleResponse{}
+	saleError := SaleError{}
+
+	client.Api.Post(BasePath+"/Cancel").BodyJSON(body).Receive(sale, saleError)
+
+	// If error
+	if saleError.ErrorReport != nil {
+		err := BadRequestError(CancelError, saleError.ErrorReport, CancelErrorCode)
+		return nil, err
+	}
+
+	response := sale.FormatResponse()
+	return response, nil
 }

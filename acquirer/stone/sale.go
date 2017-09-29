@@ -1,25 +1,19 @@
 package stone
 
+import (
+	g "github.com/ingresse/payment/gateway"
+)
+
 type Sale struct {
 	MerchantKey  string `json:",omitempty"`
 	RequestKey   string `json:",omitempty"`
 	InternalTime uint32 `json:",omitempty"`
 
-	ErrorReport *ErrorReport `json:",omitempty"`
-
 	CreditCardTransactionCollection []*CreditCardTransaction `json:",omitempty"`
 	BoletoTransactionCollection     []*BoletoTransaction     `json:",omitempty"`
 	Order                           *Order                   `json:",omitempty"`
 	Buyer                           *Buyer                   `json:",omitempty"`
-
-	// For the response
-	*SaleResponse
-
-	// For the sale GET data response
-	*SaleGetResponse
 }
-
-// -----------------------------
 
 type CreditCardTransaction struct {
 	AcquirerMessage             string `json:",omitempty"`
@@ -42,10 +36,11 @@ type CreditCardTransaction struct {
 	PaymentMethodName           string `json:",omitempty"`
 	VoidedAmountInCents         uint32 `json:",omitempty"`
 
-	AmountInCents    uint32      `json:",omitempty"`
-	CreditCard       *CreditCard `json:",omitempty"`
-	InstallmentCount uint32      `json:",omitempty"`
-	Options          *Options    `json:",omitempty"`
+	AmountInCents           uint32      `json:",omitempty"`
+	AuthorizedAmountInCents uint32      `json:",omitempty"`
+	CreditCard              *CreditCard `json:",omitempty"`
+	InstallmentCount        uint32      `json:",omitempty"`
+	Options                 *Options    `json:",omitempty"`
 }
 
 type CreditCard struct {
@@ -61,8 +56,6 @@ type CreditCard struct {
 	SecurityCode     string `json:",omitempty"`
 }
 
-// -----------------------------
-
 type BoletoTransaction struct {
 	AcquirerReturnCode      string `json:",omitempty"`
 	AcquirerReturnMessage   string `json:",omitempty"`
@@ -75,28 +68,23 @@ type BoletoTransaction struct {
 	TransactionKey          string `json:",omitempty"`
 	TransactionReference    string `json:",omitempty"`
 
-	AmountInCents uint32   `json:",omitempty"`
-	BankNumber    string   `json:",omitempty"`
-	Instructions  string   `json:",omitempty"`
-	Options       *Options `json:",omitempty"`
+	AmountInCents           uint32   `json:",omitempty"`
+	AuthorizedAmountInCents uint32   `json:",omitempty"`
+	BankNumber              string   `json:",omitempty"`
+	Instructions            string   `json:",omitempty"`
+	Options                 *Options `json:",omitempty"`
 }
-
-// -----------------------------
 
 type Options struct {
-	DaysToAddInBoletoExpirationDate uint32 `json:",omitempty"`
-	PaymentMethodCode               uint32 `json:",omitempty"`
+	DaysToAddInBoletoExpirationDate uint8 `json:",omitempty"`
+	PaymentMethodCode               uint8 `json:",omitempty"`
 }
-
-// -----------------------------
 
 type Order struct {
 	OrderReference string `json:",omitempty"`
 	CreateDate     string `json:",omitempty"`
 	OrderKey       string `json:",omitempty"`
 }
-
-// -----------------------------
 
 type Buyer struct {
 	AddressCollection []*Address `json:",omitempty"`
@@ -118,40 +106,71 @@ type Address struct {
 	ZipCode     string `json:",omitempty"`
 }
 
-// -----------------------------
+// FormatPayment use a Gateway payment data for fill up a Stone sale
+func (s *Sale) FromPayment(payment *g.Payment) {
+	s.Order = &Order{
+		OrderReference: payment.Id,
+	}
 
-type ErrorReport struct {
-	Category            string       `json:",omitempty"`
-	ErrorItemCollection []*ErrorItem `json:",omitempty"`
-}
+	// Create the customer address
+	address := &Address{
+		AddressType: "Residential",
+		City:        payment.Customer.Address.City,
+		Complement:  payment.Customer.Address.Complement,
+		Country:     payment.Customer.Address.Country,
+		Number:      payment.Customer.Address.Number,
+		State:       payment.Customer.Address.State,
+		Street:      payment.Customer.Address.Street,
+		ZipCode:     payment.Customer.Address.ZipCode,
+	}
 
-type ErrorItem struct {
-	Description  string `json:",omitempty"`
-	ErrorCode    uint32 `json:",omitempty"`
-	ErrorField   string `json:",omitempty"`
-	SeverityCode string `json:",omitempty"`
-}
+	// Create the customer
+	buyer := &Buyer{
+		Name:              payment.Customer.Name,
+		DocumentType:      CPF,
+		DocumentNumber:    payment.Customer.Document,
+		AddressCollection: []*Address{address},
+	}
 
-// Stone POST response data
-// -----------------------------
-type SaleResponse struct {
-	CreditCardTransactionResultCollection []*CreditCardTransaction `json:",omitempty"`
-	BoletoTransactionResultCollection     []*BoletoTransaction     `json:",omitempty"`
-	OrderResult                           *Order                   `json:",omitempty"`
-	BuyerKey                              string                   `json:",omitempty"`
-}
+	s.Buyer = buyer
 
-// Stone GET response data
-// -----------------------------
+	// If payment with CreditCard
+	if payment.WithCrediCard() {
+		cardTransaction := CreditCardTransaction{
+			AmountInCents: payment.Amount,
+			CreditCard: &CreditCard{
+				CreditCardBrand:  payment.CreditCard.Brand,
+				CreditCardNumber: payment.CreditCard.Number,
+				HolderName:       payment.CreditCard.Holder,
+				ExpMonth:         payment.CreditCard.Expiration[:2],
+				ExpYear:          payment.CreditCard.Expiration[3:],
+				SecurityCode:     payment.CreditCard.CVV,
+			},
+		}
 
-type SaleGetResponse struct {
-	SaleDataCollection []*SaleData `json:",omitempty"`
-	SaleDataCount      uint32      `json:",omitempty"`
-}
+		// Do not capture the transaction, only authorize
+		cardTransaction.CreditCardOperation = Authorize
 
-type SaleData struct {
-	CreditCardTransactionDataCollection []*CreditCardTransaction `json:",omitempty"`
-	BoletoTransactionDataCollection     []*BoletoTransaction     `json:",omitempty"`
-	OrderData                           *Order                   `json:",omitempty"`
-	BuyerKey                            string                   `json:",omitempty"`
+		// Stone homolog variable
+		cardTransaction.Options = &Options{
+			PaymentMethodCode: 1,
+		}
+
+		s.CreditCardTransactionCollection = []*CreditCardTransaction{&cardTransaction}
+	}
+
+	// If payment with BankingBillet
+	if payment.WithBankBillet() {
+		bankBilling := BoletoTransaction{
+			AmountInCents:        payment.Amount,
+			Instructions:         payment.BankingBillet.Instructions,
+			TransactionReference: payment.Id,
+		}
+
+		// BankingBillet options
+		bankBilling.Options = &Options{
+			PaymentMethodCode:               1,
+			DaysToAddInBoletoExpirationDate: payment.BankingBillet.Expiration,
+		}
+	}
 }

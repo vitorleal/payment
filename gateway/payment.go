@@ -10,7 +10,6 @@ type Payment struct {
 	Acquirer      string              `json:"acquirer" binding:"required"`
 	Antifraud     []antifraud.Service `json:"antifraud,omitempty" binding:"omitempty"`
 	MerchantId    string              `json:"merchantId,omitempty" binding:"omitempty"`
-	Type          string              `json:"type" binding:"required"`
 	Amount        uint32              `json:"amount" binding:"exists,ne=0"`
 	Interests     uint32              `json:"interests,omitempty"`
 	Customer      *Customer           `json:"customer" binding:"required"`
@@ -21,19 +20,19 @@ type Payment struct {
 
 type CreditCard struct {
 	SoftDescriptor string `json:"softDescriptor" binding:"required"`
-	Installments   uint32 `json:"installments" binding:"required"`
+	Installments   uint8  `json:"installments" binding:"required"`
 	Number         string `json:"number" binding:"required"`
 	Holder         string `json:"holder" binding:"required"`
 	Expiration     string `json:"expiration" binding:"required"`
 	CVV            string `json:"cvv" binding:"required"`
 	Brand          string `json:"brand" binding:"required"`
 	SaveCard       bool   `json:"saveCard" binding:"omitempty"`
+	Token          string `json:"token" binding:"omitempty"`
+	Masked         string `json:"masked" binding:"omitempty"`
 }
 
 type BankingBillet struct {
-	Provider     string `json:"provider" binding:"required"`
-	Assignor     string `json:"assignor" binding:"required"`
-	Expiration   string `json:"expiration" binding:"required"`
+	Expiration   uint8  `json:"expiration" binding:"required"`
 	Instructions string `json:"instructions" binding:"required"`
 }
 
@@ -72,7 +71,7 @@ func (payment *Payment) IsAcquirer(acquirer string) bool {
 }
 
 // Check if payment is with creditcard
-func (payment *Payment) WithCredicard() bool {
+func (payment *Payment) WithCrediCard() bool {
 	if payment.CreditCard != nil {
 		return true
 	}
@@ -82,7 +81,7 @@ func (payment *Payment) WithCredicard() bool {
 
 // Check if payment with bankBillet
 func (payment *Payment) WithBankBillet() bool {
-	if payment.BankingBillet != nil && !payment.WithCredicard() {
+	if payment.BankingBillet != nil && !payment.WithCrediCard() {
 		return true
 	}
 

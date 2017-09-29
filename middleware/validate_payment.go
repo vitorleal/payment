@@ -20,7 +20,7 @@ func ValidatePayment() gin.HandlerFunc {
 				"error": bindError,
 			})
 
-			c.Error(bindError).SetMeta("Middleware.ValidatePayment.Invalid.JSON")
+			c.Error(bindError).SetMeta("Middleware.ValidatePayment.Invalid")
 			return
 		}
 

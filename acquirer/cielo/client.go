@@ -40,7 +40,7 @@ type Client struct {
 	Env      Environment
 }
 
-// New Cielo APIs clients
+// New Cielo API clients
 func New(merchant Merchant, env Environment) *Client {
 	api := sling.New().Client(nil)
 
@@ -63,7 +63,7 @@ func New(merchant Merchant, env Environment) *Client {
 }
 
 // Create a cielo sale
-func (client *Client) NewSale(sale *Sale) (*Sale, error) {
+func (client *Client) SaleNew(sale *Sale) (*Sale, error) {
 	body, err := json.Marshal(sale)
 	fmt.Printf("%s", body)
 
@@ -74,7 +74,7 @@ func (client *Client) NewSale(sale *Sale) (*Sale, error) {
 }
 
 // Capture a cielo sale
-func (client *Client) CaptureSale(id string) (*Sale, error) {
+func (client *Client) SaleCapture(id string) (*Sale, error) {
 	responseSale := new(Sale)
 	_, err := client.Api.Put(BasePath + id + "/capture").ReceiveSuccess(responseSale)
 
@@ -82,7 +82,7 @@ func (client *Client) CaptureSale(id string) (*Sale, error) {
 }
 
 // Get a cielo sale
-func (client *Client) GetSale(id string) (*Sale, error) {
+func (client *Client) SaleGet(id string) (*Sale, error) {
 	responseSale := new(Sale)
 	_, err := client.Query.Get(BasePath + id).ReceiveSuccess(responseSale)
 

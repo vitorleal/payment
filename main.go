@@ -7,21 +7,16 @@ import (
 )
 
 func main() {
-	server := gin.Default()
+	server := gin.New()
 
 	// General Middlewares
+	server.Use(gin.Logger())
 	server.Use(middleware.Cors())
+	//server.Use(middleware.Recovery())
 
-	// Controllers
-	acq := acquirer.NewController()
+	// Routes
+	acquirer.Routes(server)
 
-	// Define Routes
-	pay := server.Group("/")
-	{
-		pay.POST("/", middleware.ValidatePayment(), middleware.Antifraud(), acq.Pay)
-		pay.GET("/:id", acq.Get)
-		pay.PUT("/:id/capture", acq.Capture)
-	}
-
+	// Run server
 	server.Run()
 }
