@@ -1,6 +1,13 @@
 package cielo
 
-// Payment base struct
+type Sale struct {
+	MerchantOrderId string    `json:",omitempty"`
+	Customer        *Customer `json:",omitempty"`
+	Payment         *Payment  `json:",omitempty"`
+}
+
+// -----------------------------
+
 type Payment struct {
 	Type              string            `json:",omitempty"`
 	Amount            uint32            `josn:",omitempty"`
@@ -54,4 +61,24 @@ type RecurrentPayment struct {
 	AuthorizeNow bool   `json:",omitempty"`
 	EndDate      string `json:",omitempty"`
 	Interval     string `json:",omitempty"`
+}
+
+// -----------------------------
+
+type Customer struct {
+	Name            string
+	Email           string   `json:",omitempty"`
+	Birthdate       string   `json:",omitempty"`
+	Address         *Address `json:",omitempty"`
+	DeliveryAddress *Address `json:",omitempty"`
+}
+
+type Address struct {
+	Street     string `json:",omitempty"`
+	Number     string `json:",omitempty"`
+	Complement string `json:",omitempty"`
+	ZipCode    string `json:",omitempty"`
+	City       string `json:",omitempty"`
+	State      string `json:",omitempty"`
+	Country    string `json:",omitempty"`
 }

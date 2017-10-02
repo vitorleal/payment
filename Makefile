@@ -1,9 +1,12 @@
+.PHONY: all install test deps
+
+export GOPATH="${HOME}/Code/ingresse/go"
+
 all: build
 
 install: deps
 	govendor sync
 
-.PHONY: test
 test:
 	go test -v -covermode=count -coverprofile=coverage.out
 

@@ -3,13 +3,13 @@ package middleware
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
-	"github.com/ingresse/payment/payment"
+	"github.com/ingresse/payment/gateway"
 )
 
 // Validate payment body before procedd
 func ValidatePayment() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		var body payment.Payment
+		var body gateway.Payment
 
 		// Validate the JSON body
 		bindError := c.ShouldBindWith(&body, binding.JSON)
@@ -20,7 +20,7 @@ func ValidatePayment() gin.HandlerFunc {
 				"error": bindError,
 			})
 
-			c.Error(bindError).SetMeta("Middleware.ValidatePayment.Invalid.JSON")
+			c.Error(bindError).SetMeta("Middleware.ValidatePayment.Invalid")
 			return
 		}
 

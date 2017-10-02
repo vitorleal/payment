@@ -4,93 +4,68 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/ingresse/payment/acquirer/cielo"
+	"github.com/ingresse/payment/gateway"
 )
 
 // Acquirer controller
-type AcquirerController struct {
-	Cielo *cielo.Client
-}
+type Controller struct{}
 
-// Init the controller
-func NewController() *AcquirerController {
-	return &AcquirerController{
-		cielo.New(cielo.Merchant{
-			Id:  "7df78036-fe0a-4909-9315-933ccb3ab5cd",
-			Key: "QDWVJXLMPKWFXWDMWLWAGUDHBHMVQVHJOWLQYZGQ",
-		}, cielo.Sandbox),
+// Create a new payment
+func (controller *Controller) Authorize(c *gin.Context) {
+	payment := c.MustGet("body").(gateway.Payment)
+
+	acquirer := NewAcquirer(payment.Acquirer)
+	response, err := acquirer.Authorize(&payment)
+
+	// If error exist
+	if err != nil {
+		c.AbortWithStatusJSON(err.Status, err.Json())
+		return
 	}
-}
 
-// Execute a payment
-func (controller *AcquirerController) Pay(c *gin.Context) {
-	//body := c.MustGet("body").(payment.Payment)
-
-	//order := cielo.Order{
-	//MerchantOrderId: body.Id,
-	//Customer: &cielo.Customer{
-	//Name: body.Customer.Name,
-	//},
-	//Payment: &cielo.Payment{
-	//Type:           body.Payment.Type,
-	//Amount:         body.Payment.Amount,
-	//Installments:   body.Payment.Installments,
-	//SoftDescriptor: body.Payment.SoftDescriptor,
-	//CreditCard: &cielo.CreditCard{
-	//CardNumber:     body.Payment.CreditCard.Number,
-	//Holder:         body.Payment.CreditCard.Holder,
-	//ExpirationDate: body.Payment.CreditCard.Expiration,
-	//SecurityCode:   body.Payment.CreditCard.CVV,
-	//Brand:          body.Payment.CreditCard.Brand,
-	//},
-	//},
-	//}
-
-	//response, err := client.NewOrder(&order)
-
-	//if err != nil {
-	//c.AbortWithStatusJSON(400, gin.H{
-	//"error": err,
-	//})
-	//return
-	//}
-
+	// Return the transaction
 	c.JSON(http.StatusOK, gin.H{
-		"acquirer": "cielo",
-		"order":    nil,
+		"data": response,
 	})
+
+	return
 }
 
 // Capture an existing transaction
-func (controller *AcquirerController) Capture(c *gin.Context) {
-	response, err := controller.Cielo.CaptureOrder(c.Param("id"))
+func (controller *Controller) Capture(c *gin.Context) {
+	payment := c.MustGet("body").(gateway.Payment)
+
+	acquirer := NewAcquirer(payment.Acquirer)
+	response, err := acquirer.Capture(payment.Id)
 
 	if err != nil {
-		c.AbortWithStatusJSON(400, gin.H{
-			"error": err.Error(),
-		})
+		c.AbortWithStatusJSON(err.Status, err.Json())
 		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"acquirer": "cielo",
-		"order":    response,
+		"data": response,
 	})
 }
 
 // Get data of an existing transaction
-func (controller *AcquirerController) Get(c *gin.Context) {
-	response, err := controller.Cielo.GetOrder(c.Param("id"))
+func (controller *Controller) Get(c *gin.Context) {
+	name := c.Param("acquirer")
+	id := c.Param("id")
 
+	acquirer := NewAcquirer(name)
+	response, err := acquirer.Get(id)
+
+	// If error exist
 	if err != nil {
-		c.AbortWithStatusJSON(400, gin.H{
-			"error": err.Error(),
-		})
+		c.AbortWithStatusJSON(err.Status, err.Json())
 		return
 	}
 
+	// Return the transaction
 	c.JSON(http.StatusOK, gin.H{
-		"acquirer": "cielo",
-		"order":    response,
+		"data": response,
 	})
+
+	return
 }

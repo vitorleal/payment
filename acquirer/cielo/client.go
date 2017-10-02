@@ -7,6 +7,9 @@ import (
 	"github.com/satori/go.uuid"
 )
 
+const Name = "cielo"
+const BasePath = "/1/sales/"
+
 var (
 	Production = Environment{
 		Url:   "https://api.cieloecommerce.cielo.com.br",
@@ -18,8 +21,6 @@ var (
 		Query: "https://apiquerysandbox.cieloecommerce.cielo.com.br",
 	}
 )
-
-var basePath = "/1/sales/"
 
 // Cielo merchant
 type Merchant struct {
@@ -39,7 +40,7 @@ type Client struct {
 	Env      Environment
 }
 
-// New Cielo APIs clients
+// New Cielo API clients
 func New(merchant Merchant, env Environment) *Client {
 	api := sling.New().Client(nil)
 
@@ -61,29 +62,29 @@ func New(merchant Merchant, env Environment) *Client {
 	return &client
 }
 
-// Create a cielo order
-func (client *Client) NewOrder(order *Order) (*Order, error) {
-	body, err := json.Marshal(order)
+// Create a cielo sale
+func (client *Client) SaleNew(sale *Sale) (*Sale, error) {
+	body, err := json.Marshal(sale)
 	fmt.Printf("%s", body)
 
-	responseOrder := new(Order)
-	_, err = client.Api.Post(basePath).BodyJSON(order).ReceiveSuccess(responseOrder)
+	responseSale := new(Sale)
+	_, err = client.Api.Post(BasePath).BodyJSON(sale).ReceiveSuccess(responseSale)
 
-	return responseOrder, err
+	return responseSale, err
 }
 
-// Capture a cielo order
-func (client *Client) CaptureOrder(id string) (*Order, error) {
-	responseOrder := new(Order)
-	_, err := client.Api.Put(basePath + id + "/capture").ReceiveSuccess(responseOrder)
+// Capture a cielo sale
+func (client *Client) SaleCapture(id string) (*Sale, error) {
+	responseSale := new(Sale)
+	_, err := client.Api.Put(BasePath + id + "/capture").ReceiveSuccess(responseSale)
 
-	return responseOrder, err
+	return responseSale, err
 }
 
-// Get a cielo order
-func (client *Client) GetOrder(id string) (*Order, error) {
-	responseOrder := new(Order)
-	_, err := client.Query.Get(basePath + id).ReceiveSuccess(responseOrder)
+// Get a cielo sale
+func (client *Client) SaleGet(id string) (*Sale, error) {
+	responseSale := new(Sale)
+	_, err := client.Query.Get(BasePath + id).ReceiveSuccess(responseSale)
 
-	return responseOrder, err
+	return responseSale, err
 }
