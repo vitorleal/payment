@@ -1,7 +1,7 @@
 package stone
 
 import (
-	"github.com/ingresse/payment/errors"
+	g "github.com/ingresse/payment/gateway"
 	"net/http"
 )
 
@@ -19,12 +19,18 @@ const (
 	CancelErrorCode int    = 2003
 )
 
-// BadRequestError return a new badRequest error with custom message and code
-func BadRequestError(message string, report *ErrorReport, code int) *errors.ApiError {
-	e := errors.NewApiError(code, message, http.StatusBadRequest, nil)
+// BadRequestError return a new badRequest error
+// with custom message, code and extra informations
+func BadRequestError(message string, report *ErrorReport, code int) *g.Error {
+	e := g.NewError(code, message, http.StatusBadRequest)
 
-	for _, reportError := range report.ErrorItemCollection {
-		e.AddDetails("details", reportError.Description)
+	for _, r := range report.ErrorItemCollection {
+		if r.ErrorField != "" {
+			e.AddDetails("field", r.ErrorField)
+		}
+
+		e.AddDetails("info", r.Description)
+		e.AddDetails("severity", r.SeverityCode)
 	}
 
 	return e

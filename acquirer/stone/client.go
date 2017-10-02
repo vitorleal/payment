@@ -2,7 +2,6 @@ package stone
 
 import (
 	"github.com/dghubble/sling"
-	e "github.com/ingresse/payment/errors"
 	g "github.com/ingresse/payment/gateway"
 )
 
@@ -51,7 +50,7 @@ func NewClient(merchant Merchant, env Environment) *Client {
 }
 
 // Authorize will authorize a sale in Stone
-func (client *Client) Authorize(payment *g.Payment) (*g.Response, *e.ApiError) {
+func (client *Client) Authorize(payment *g.Payment) (*g.Response, *g.Error) {
 	body := new(Sale)
 	body.FromPayment(payment)
 
@@ -71,7 +70,7 @@ func (client *Client) Authorize(payment *g.Payment) (*g.Response, *e.ApiError) {
 }
 
 // Capture will capture an authorized sale in Stone
-func (client *Client) Capture(id string) (*g.Response, *e.ApiError) {
+func (client *Client) Capture(id string) (*g.Response, *g.Error) {
 	sale := new(SaleResponse)
 	saleError := new(SaleError)
 
@@ -88,7 +87,7 @@ func (client *Client) Capture(id string) (*g.Response, *e.ApiError) {
 }
 
 // Get will get sale information in Stone
-func (client *Client) Get(id string) (*g.Response, *e.ApiError) {
+func (client *Client) Get(id string) (*g.Response, *g.Error) {
 	sale := new(SaleDataResponse)
 	saleError := new(SaleError)
 
@@ -105,7 +104,7 @@ func (client *Client) Get(id string) (*g.Response, *e.ApiError) {
 }
 
 // Cancel will cancel an authorized or payed sale in Stone
-func (client *Client) Cancel(payment *g.Payment) (*g.Response, *e.ApiError) {
+func (client *Client) Cancel(payment *g.Payment) (*g.Response, *g.Error) {
 	body := new(Sale)
 	body.FromPayment(payment)
 

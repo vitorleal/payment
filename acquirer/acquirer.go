@@ -2,16 +2,15 @@ package acquirer
 
 import (
 	"github.com/ingresse/payment/acquirer/stone"
-	e "github.com/ingresse/payment/errors"
 	g "github.com/ingresse/payment/gateway"
 )
 
 // ClientInterface is the interface for differents acquirers
 type ClientInterface interface {
-	Get(id string) (*g.Response, *e.ApiError)
-	Capture(id string) (*g.Response, *e.ApiError)
-	Authorize(payment *g.Payment) (*g.Response, *e.ApiError)
-	Cancel(payment *g.Payment) (*g.Response, *e.ApiError)
+	Get(id string) (*g.Response, *g.Error)
+	Capture(id string) (*g.Response, *g.Error)
+	Authorize(payment *g.Payment) (*g.Response, *g.Error)
+	Cancel(payment *g.Payment) (*g.Response, *g.Error)
 }
 
 // Acquirer represents the struct of the acquirers
@@ -29,21 +28,21 @@ func NewAcquirer(name string) *Acquirer {
 }
 
 // Authorize will autorize a payment using the Acquirer client
-func (a *Acquirer) Authorize(payment *g.Payment) (*g.Response, *e.ApiError) {
+func (a *Acquirer) Authorize(payment *g.Payment) (*g.Response, *g.Error) {
 	return a.Client.Authorize(payment)
 }
 
 // Capture will capture an autorized payment using the Acquirer client
-func (a *Acquirer) Capture(id string) (*g.Response, *e.ApiError) {
+func (a *Acquirer) Capture(id string) (*g.Response, *g.Error) {
 	return a.Client.Capture(id)
 }
 
 // Get will a payment using the Acquirer client
-func (a *Acquirer) Get(id string) (*g.Response, *e.ApiError) {
+func (a *Acquirer) Get(id string) (*g.Response, *g.Error) {
 	return a.Client.Get(id)
 }
 
 // Cancel will cancel an authorized or payed payment using the Acquirer client
-func (a *Acquirer) Cancel(payment *g.Payment) (*g.Response, *e.ApiError) {
+func (a *Acquirer) Cancel(payment *g.Payment) (*g.Response, *g.Error) {
 	return a.Client.Cancel(payment)
 }
