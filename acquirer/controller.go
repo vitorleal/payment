@@ -19,7 +19,7 @@ func (controller *Controller) Authorize(c *gin.Context) {
 
 	// If error exist
 	if err != nil {
-		c.AbortWithStatusJSON(err.Status, err.Json())
+		c.AbortWithStatusJSON(err.Status, err)
 		return
 	}
 
@@ -39,7 +39,7 @@ func (controller *Controller) Capture(c *gin.Context) {
 	response, err := acquirer.Capture(payment.Id)
 
 	if err != nil {
-		c.AbortWithStatusJSON(err.Status, err.Json())
+		c.AbortWithStatusJSON(err.Status, err)
 		return
 	}
 
@@ -58,7 +58,7 @@ func (controller *Controller) Get(c *gin.Context) {
 
 	// If error exist
 	if err != nil {
-		c.AbortWithStatusJSON(err.Status, err.Json())
+		c.AbortWithStatusJSON(err.Status, err)
 		return
 	}
 
