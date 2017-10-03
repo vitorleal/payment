@@ -123,15 +123,17 @@ func (s *Sale) FromPayment(payment *g.Payment) {
 	}
 
 	// Create the customer address
-	address := &Address{
-		AddressType: "Residential",
-		City:        payment.Customer.Address.City,
-		Complement:  payment.Customer.Address.Complement,
-		Country:     payment.Customer.Address.Country,
-		Number:      payment.Customer.Address.Number,
-		State:       payment.Customer.Address.State,
-		Street:      payment.Customer.Address.Street,
-		ZipCode:     payment.Customer.Address.ZipCode,
+	address := &Address{}
+
+	if payment.Customer.Address != nil {
+		address.AddressType = "Residential"
+		address.City = payment.Customer.Address.City
+		address.Complement = payment.Customer.Address.Complement
+		address.Country = payment.Customer.Address.Country
+		address.Number = payment.Customer.Address.Number
+		address.State = payment.Customer.Address.State
+		address.Street = payment.Customer.Address.Street
+		address.ZipCode = payment.Customer.Address.ZipCode
 	}
 
 	// Create the customer
@@ -171,16 +173,18 @@ func (s *Sale) FromPayment(payment *g.Payment) {
 
 	// If payment with BankingBillet
 	if payment.WithBankingBillet() {
-		bankBilling := BoletoTransaction{
+		bankingBillet := BoletoTransaction{
 			AmountInCents:        payment.Amount,
 			Instructions:         payment.BankingBillet.Instructions,
 			TransactionReference: payment.Id,
 		}
 
 		// BankingBillet options
-		bankBilling.Options = &Options{
+		bankingBillet.Options = &Options{
 			PaymentMethodCode:               1,
 			DaysToAddInBoletoExpirationDate: payment.BankingBillet.Expiration,
 		}
+
+		s.BoletoTransactionCollection = []*BoletoTransaction{&bankingBillet}
 	}
 }

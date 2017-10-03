@@ -5,24 +5,37 @@ import (
 	"net/http"
 )
 
-const (
-	AuthorizeError     string = "Error authorizing the sale"
-	AuthorizeErrorCode int    = 2000
+type ErrorType struct {
+	Message string
+	Code    int
+}
 
-	CaptureError     string = "Error capturing the sale"
-	CaptureErrorCode int    = 2001
+var (
+	AuthorizeError = &ErrorType{
+		Message: "Error authorizing the sale",
+		Code:    2000,
+	}
 
-	GetSaleError     string = "Error requesting for the sale data"
-	GetSaleErrorCode int    = 2002
+	CaptureError = &ErrorType{
+		Message: "Error capturing the sale",
+		Code:    2001,
+	}
 
-	CancelError     string = "Error canceling the sale"
-	CancelErrorCode int    = 2003
+	GetSaleError = &ErrorType{
+		Message: "Error requesting for the sale data",
+		Code:    2002,
+	}
+
+	CancelError = &ErrorType{
+		Message: "Error canceling the sale",
+		Code:    2003,
+	}
 )
 
 // BadRequestError return a new badRequest error
 // with custom message, code and extra informations
-func BadRequestError(message string, report *ErrorReport, code int) *g.Error {
-	e := g.NewError(code, message, http.StatusBadRequest)
+func BadRequestError(errorType *ErrorType, report *ErrorReport) *g.Error {
+	e := g.NewError(errorType.Code, errorType.Message, http.StatusBadRequest)
 
 	for _, r := range report.ErrorItemCollection {
 		if r.ErrorField != "" {

@@ -3,11 +3,15 @@ package main
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/ingresse/payment/acquirer"
+	"github.com/ingresse/payment/gateway"
 	"github.com/ingresse/payment/middleware"
 )
 
 func main() {
 	server := gin.New()
+
+	// Register Validations
+	gateway.RegisterValidations()
 
 	// General Middlewares
 	server.Use(gin.Logger())

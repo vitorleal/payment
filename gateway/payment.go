@@ -1,82 +1,76 @@
 package gateway
 
-import (
-	"github.com/ingresse/payment/antifraud"
-	"strings"
-)
-
 type (
 	// Payment represnet a new request payment data
 	Payment struct {
-		Id            string              `json:"id" binding:"required"`
-		Acquirer      string              `json:"acquirer" binding:"required"`
-		Antifraud     []antifraud.Service `json:"antifraud,omitempty" binding:"omitempty"`
-		MerchantId    string              `json:"merchantId,omitempty" binding:"omitempty"`
-		Amount        uint32              `json:"amount" binding:"exists,ne=0"`
-		Interests     uint32              `json:"interests,omitempty"`
-		Customer      *Customer           `json:"customer" binding:"required"`
-		Items         []Item              `json:"items,omitempty" binding="omitempty"`
-		CreditCard    *CreditCard         `json:"creditCard,omitempty" binding:"omitempty"`
-		BankingBillet *BankingBillet      `json:"bankingBillet,omitempty" binding:"omitempty"`
+		Id            string         `json:"id,omitempty"            binding:"required"`
+		Acquirer      string         `json:"acquirer,omitempty"      binding:"required,acquirer"`
+		Antifraud     []*Antifraud   `json:"antifraud,omitempty"     binding:"dive"`
+		MerchantId    string         `json:"merchantId,omitempty"    binding:"omitempty"`
+		Amount        uint32         `json:"amount,omitempty"        binding:"exists,ne=0"`
+		Interests     uint32         `json:"interests,omitempty"`
+		Customer      *Customer      `json:"customer,omitempty"      binding:"required"`
+		Items         []*Item        `json:"items,omitempty"         binding:"dive"`
+		CreditCard    *CreditCard    `json:"creditCard,omitempty"    binding:"omitempty"`
+		BankingBillet *BankingBillet `json:"bankingBillet,omitempty" binding:"omitempty"`
 	}
 
 	// CreditCard represents the creditCard data for the payment
 	CreditCard struct {
-		SoftDescriptor string `json:"softDescriptor" binding:"required"`
-		Installments   uint8  `json:"installments" binding:"required"`
-		Number         string `json:"number" binding:"required"`
-		Holder         string `json:"holder" binding:"required"`
-		Expiration     string `json:"expiration" binding:"required"`
-		CVV            string `json:"cvv" binding:"required"`
-		Brand          string `json:"brand" binding:"required"`
-		SaveCard       bool   `json:"saveCard" binding:"omitempty"`
-		Token          string `json:"token" binding:"omitempty"`
-		Masked         string `json:"masked" binding:"omitempty"`
+		SoftDescriptor string `json:"softDescriptor,omitempty"`
+		Installments   uint8  `json:"installments,omitempty" binding:"required,min=1"`
+		Number         string `json:"number,omitempty"       binding:"required,min=10,max=24"`
+		Holder         string `json:"holder,omitempty"       binding:"required"`
+		Expiration     string `json:"expiration,omitempty"   binding:"required"`
+		CVV            string `json:"cvv,omitempty"          binding:"required"`
+		Brand          string `json:"brand,omitempty"        binding:"required,creditCardBrand"`
+		SaveCard       bool   `json:"saveCard,omitempty"     binding:"omitempty"`
+
+		Token  string `json:"token,omitempty"  binding:"omitempty"`
+		Masked string `json:"masked,omitempty" binding:"omitempty"`
 	}
 
-	// BankingBillet represnt the bankingBillet data for the payment
+	// BankingBillet represents the bankingBillet data for the payment
 	BankingBillet struct {
-		Expiration   uint8  `json:"expiration" binding:"required"`
+		Expiration   uint8  `json:"expiration"   binding:"required,min=3,max=6"`
 		Instructions string `json:"instructions" binding:"required"`
+	}
+
+	// Antifraud represents the antifraud data for the payment
+	Antifraud struct {
+		Name  string  `json:"name,omitempty", binding:"required,antifraud"`
+		Score float64 `json:"score,omitempty" binding:"required,ne=0"`
 	}
 
 	// Customer represents the customer data for the payment
 	Customer struct {
-		Id       string   `json:"id" binding:"required"`
-		Name     string   `json:"name" binding:"required"`
-		Document string   `json:"document" binding:"required"`
-		Address  *Address `json:"address,omitempty"`
+		Id       string `json:"id"       binding:"required"`
+		Name     string `json:"name"     binding:"required"`
+		Document string `json:"document" binding:"required"`
+
+		Address *Address `json:"address,omitempty"`
 	}
 
 	// Address represents the customer address data
 	Address struct {
-		Street     string `json:"street,omitempty"`
-		Number     string `json:"number,omitempty"`
-		Complement string `json:"complement,omitempty"`
-		ZipCode    string `json:"zipcode,omitempty"`
-		City       string `json:"city,omitempty"`
-		State      string `json:"state,omitempty"`
-		Country    string `json:"country,omitempty"`
+		Street     string `json:"street,omitempty"     binding:"required"`
+		Number     string `json:"number,omitempty"     binding:"required"`
+		Complement string `json:"complement,omitempty" binding:"required"`
+		ZipCode    string `json:"zipcode,omitempty"    binding:"required"`
+		City       string `json:"city,omitempty"       binding:"required"`
+		State      string `json:"state,omitempty"      binding:"required"`
+		Country    string `json:"country,omitempty"    binding:"required"`
 	}
 
 	// Item represents the products related to the payment
 	Item struct {
-		Id        string `json:"id,omitempty"`
-		Type      string `json:"type,omitempty"`
-		Name      string `json:"name,omitempty"`
-		UnitPrice uint32 `json:"unitPrice,omitempty"`
-		Quantity  uint32 `json:"quantity,omitempty"`
+		Id        string `json:"id,omitempty"        binding:"required"`
+		Type      string `json:"type,omitempty"      binding:"required"`
+		Name      string `json:"name,omitempty"      binding:"required"`
+		UnitPrice uint32 `json:"unitPrice,omitempty" binding:"required"`
+		Quantity  uint32 `json:"quantity,omitempty"  binding:"required"`
 	}
 )
-
-// Compare payment accquirer to check if is the same
-func (payment *Payment) IsAcquirer(acquirer string) bool {
-	if strings.ToLower(payment.Acquirer) == strings.ToLower(acquirer) {
-		return true
-	}
-
-	return false
-}
 
 // WithCrediCard verify if payment is with creditcard
 func (payment *Payment) WithCrediCard() bool {

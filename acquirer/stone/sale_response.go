@@ -1,7 +1,6 @@
 package stone
 
 import (
-	"fmt"
 	g "github.com/ingresse/payment/gateway"
 )
 
@@ -20,8 +19,6 @@ func (s *SaleResponse) FormatResponse() *g.Response {
 	response := new(g.Response)
 	response.Acquirer = Name
 
-	fmt.Printf("%+v", s)
-
 	if s.OrderResult != nil {
 		response.Id = s.OrderResult.OrderReference
 		response.AuthorizationCode = s.OrderResult.OrderKey
@@ -31,15 +28,19 @@ func (s *SaleResponse) FormatResponse() *g.Response {
 	if len(s.CreditCardTransactionResultCollection) > 0 {
 		transaction := s.CreditCardTransactionResultCollection[0]
 
-		response.Amount = transaction.AuthorizedAmountInCents
-		response.CreditCard = &g.CreditCard{}
+		response.Amount = transaction.AmountInCents
+		//response.CreditCard = &g.CreditCard{}
+		response.NSU = transaction.UniqueSequentialNumber
+		response.TID = transaction.TransactionIdentifier
 	}
 
 	// If BankingBillet
 	if len(s.BoletoTransactionResultCollection) > 0 {
 		transaction := s.BoletoTransactionResultCollection[0]
 
-		response.Amount = transaction.AuthorizedAmountInCents
+		response.Amount = transaction.AmountInCents
+		response.BarCode = transaction.Barcode
+		response.BoletoUrl = transaction.BoletoUrl
 	}
 
 	return response

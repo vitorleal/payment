@@ -18,17 +18,9 @@ func Antifraud() gin.HandlerFunc {
 			return
 		}
 
-		for _, antifraud := range body.Antifraud {
-			// Validate the antifraud services
-			if !antifraud.IsValid() {
-				c.AbortWithStatusJSON(400, gin.H{
-					"error": "Invalid antifraud option: " + antifraud,
-				})
-				return
-			}
-
+		for _, a := range body.Antifraud {
 			// If siftscience
-			if antifraud.String() == siftscience.Name {
+			if a.Name == siftscience.Name {
 				sift := siftscience.New(siftscience.Sandbox)
 				score, err := sift.GetScore(body.Customer.Id)
 
@@ -48,7 +40,7 @@ func Antifraud() gin.HandlerFunc {
 					return
 				}
 
-				if score.Scores.PaymentAbuse.Score >= 0.4 {
+				if score.Scores.PaymentAbuse.Score >= a.Score {
 					c.AbortWithStatusJSON(400, gin.H{
 						"error":     "User with score over the limit",
 						"antifraud": score,
