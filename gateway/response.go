@@ -4,7 +4,14 @@ package gateway
 type Response struct {
 	Payment
 
-	NSU               string `json:"nsu"`
-	AuthorizationCode string `json:"authorizationCode"`
-	Token             string `json:"token"`
+	// CreditCard response
+	NSU               string `json:"nsu,omitempty"`
+	TID               string `json:"tid,omitempty"`
+	AuthorizationCode string `json:"authorizationCode,omitempty"`
+	Token             string `json:"token,omitempty"`
+
+	// BoletoResponse
+	BarCode      string `json:"barCode,omitempty"`
+	BoletoStatus string `json:"boletoStatus,omitempty"`
+	BoletoUrl    string `json:"boletoUrl,omitempty"`
 }

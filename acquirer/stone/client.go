@@ -61,7 +61,7 @@ func (client *Client) Authorize(payment *g.Payment) (*g.Response, *g.Error) {
 
 	// If error
 	if saleError.ErrorReport != nil {
-		err := BadRequestError(AuthorizeError, saleError.ErrorReport, AuthorizeErrorCode)
+		err := BadRequestError(AuthorizeError, saleError.ErrorReport)
 		return nil, err
 	}
 
@@ -78,7 +78,7 @@ func (client *Client) Capture(id string) (*g.Response, *g.Error) {
 
 	// If error
 	if saleError.ErrorReport != nil {
-		err := BadRequestError(CaptureError, saleError.ErrorReport, CaptureErrorCode)
+		err := BadRequestError(CaptureError, saleError.ErrorReport)
 		return nil, err
 	}
 
@@ -95,7 +95,7 @@ func (client *Client) Get(id string) (*g.Response, *g.Error) {
 
 	// If error
 	if saleError.ErrorReport != nil {
-		err := BadRequestError(GetSaleError, saleError.ErrorReport, GetSaleErrorCode)
+		err := BadRequestError(GetSaleError, saleError.ErrorReport)
 		return nil, err
 	}
 
@@ -105,17 +105,17 @@ func (client *Client) Get(id string) (*g.Response, *g.Error) {
 
 // Cancel will cancel an authorized or payed sale in Stone
 func (client *Client) Cancel(payment *g.Payment) (*g.Response, *g.Error) {
-	body := new(Sale)
-	body.FromPayment(payment)
+	data := new(Sale)
+	data.FromPayment(payment)
 
 	sale := new(SaleResponse)
 	saleError := new(SaleError)
 
-	client.Api.Post(BasePath+"/Cancel").BodyJSON(body).Receive(sale, saleError)
+	client.Api.Post(BasePath+"/Cancel").BodyJSON(data).Receive(sale, saleError)
 
 	// If error
 	if saleError.ErrorReport != nil {
-		err := BadRequestError(CancelError, saleError.ErrorReport, CancelErrorCode)
+		err := BadRequestError(CancelError, saleError.ErrorReport)
 		return nil, err
 	}
 

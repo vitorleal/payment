@@ -50,10 +50,9 @@ func (controller *Controller) Capture(c *gin.Context) {
 
 // Get data of an existing transaction
 func (controller *Controller) Get(c *gin.Context) {
-	name := c.Param("acquirer")
 	id := c.Param("id")
 
-	acquirer := NewAcquirer(name)
+	acquirer := NewAcquirer("stone")
 	response, err := acquirer.Get(id)
 
 	// If error exist
