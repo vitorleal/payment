@@ -2,7 +2,7 @@ package acquirer
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/ingresse/payment/middleware"
+	"github.com/ingresse/payment/server/middleware"
 )
 
 // Acquirer routes
