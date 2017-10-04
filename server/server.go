@@ -16,7 +16,7 @@ func Start() {
 
 	// General Middlewares
 	server.Use(gin.Logger())
-	server.Use(middleware.Cors())
+	server.Use(middleware.Cors(), middleware.Jwt())
 	//server.Use(middleware.Recovery())
 
 	// Routes

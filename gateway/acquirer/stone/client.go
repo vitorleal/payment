@@ -2,6 +2,7 @@ package stone
 
 import (
 	"github.com/dghubble/sling"
+	e "github.com/ingresse/payment/errors"
 	g "github.com/ingresse/payment/gateway"
 )
 
@@ -50,7 +51,7 @@ func NewClient(merchant Merchant, env Environment) *Client {
 }
 
 // Authorize will authorize a sale in Stone
-func (client *Client) Authorize(payment *g.Payment) (*g.Response, *g.Error) {
+func (client *Client) Authorize(payment *g.Payment) (*g.Response, *e.Error) {
 	body := new(Sale)
 	body.FromPayment(payment)
 
@@ -61,7 +62,7 @@ func (client *Client) Authorize(payment *g.Payment) (*g.Response, *g.Error) {
 
 	// If error
 	if saleError.ErrorReport != nil {
-		err := BadRequestError(AuthorizeError, saleError.ErrorReport)
+		err := ResponseError(AuthorizeError, saleError.ErrorReport)
 		return nil, err
 	}
 
@@ -70,7 +71,7 @@ func (client *Client) Authorize(payment *g.Payment) (*g.Response, *g.Error) {
 }
 
 // Capture will capture an authorized sale in Stone
-func (client *Client) Capture(id string) (*g.Response, *g.Error) {
+func (client *Client) Capture(id string) (*g.Response, *e.Error) {
 	sale := new(SaleResponse)
 	saleError := new(SaleError)
 
@@ -78,7 +79,7 @@ func (client *Client) Capture(id string) (*g.Response, *g.Error) {
 
 	// If error
 	if saleError.ErrorReport != nil {
-		err := BadRequestError(CaptureError, saleError.ErrorReport)
+		err := ResponseError(CaptureError, saleError.ErrorReport)
 		return nil, err
 	}
 
@@ -87,7 +88,7 @@ func (client *Client) Capture(id string) (*g.Response, *g.Error) {
 }
 
 // Get will get sale information in Stone
-func (client *Client) Get(id string) (*g.Response, *g.Error) {
+func (client *Client) Get(id string) (*g.Response, *e.Error) {
 	sale := new(SaleDataResponse)
 	saleError := new(SaleError)
 
@@ -95,7 +96,7 @@ func (client *Client) Get(id string) (*g.Response, *g.Error) {
 
 	// If error
 	if saleError.ErrorReport != nil {
-		err := BadRequestError(GetSaleError, saleError.ErrorReport)
+		err := ResponseError(GetSaleError, saleError.ErrorReport)
 		return nil, err
 	}
 
@@ -104,7 +105,7 @@ func (client *Client) Get(id string) (*g.Response, *g.Error) {
 }
 
 // Cancel will cancel an authorized or payed sale in Stone
-func (client *Client) Cancel(payment *g.Payment) (*g.Response, *g.Error) {
+func (client *Client) Cancel(payment *g.Payment) (*g.Response, *e.Error) {
 	data := new(Sale)
 	data.FromPayment(payment)
 
@@ -115,7 +116,7 @@ func (client *Client) Cancel(payment *g.Payment) (*g.Response, *g.Error) {
 
 	// If error
 	if saleError.ErrorReport != nil {
-		err := BadRequestError(CancelError, saleError.ErrorReport)
+		err := ResponseError(CancelError, saleError.ErrorReport)
 		return nil, err
 	}
 

@@ -1,50 +1,44 @@
 package stone
 
 import (
-	g "github.com/ingresse/payment/gateway"
-	"net/http"
+	e "github.com/ingresse/payment/errors"
 )
 
-type ErrorType struct {
-	Message string
-	Code    int
-}
-
 var (
-	AuthorizeError = &ErrorType{
+	AuthorizeError = &e.CustomError{
 		Message: "Error authorizing the sale",
 		Code:    2000,
 	}
 
-	CaptureError = &ErrorType{
+	CaptureError = &e.CustomError{
 		Message: "Error capturing the sale",
 		Code:    2001,
 	}
 
-	GetSaleError = &ErrorType{
+	GetSaleError = &e.CustomError{
 		Message: "Error requesting for the sale data",
 		Code:    2002,
 	}
 
-	CancelError = &ErrorType{
+	CancelError = &e.CustomError{
 		Message: "Error canceling the sale",
 		Code:    2003,
 	}
 )
 
-// BadRequestError return a new badRequest error
+// Response return a new badRequest error
 // with custom message, code and extra informations
-func BadRequestError(errorType *ErrorType, report *ErrorReport) *g.Error {
-	e := g.NewError(errorType.Code, errorType.Message, http.StatusBadRequest)
+func ResponseError(errorType *e.CustomError, report *ErrorReport) *e.Error {
+	err := e.BadRequestError(errorType.Code, errorType.Message)
 
 	for _, r := range report.ErrorItemCollection {
 		if r.ErrorField != "" {
-			e.AddDetails("field", r.ErrorField)
+			err.AddDetails("field", r.ErrorField)
 		}
 
-		e.AddDetails("info", r.Description)
-		e.AddDetails("severity", r.SeverityCode)
+		err.AddDetails("info", r.Description)
+		err.AddDetails("severity", r.SeverityCode)
 	}
 
-	return e
+	return err
 }

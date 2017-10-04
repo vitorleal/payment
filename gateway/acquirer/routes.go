@@ -12,7 +12,7 @@ func Routes(server *gin.Engine) {
 	acquirer := server.Group("/")
 	{
 		// Authorize new payment
-		acquirer.POST("/", middleware.ValidatePayment(), middleware.Antifraud(), controller.Authorize)
+		acquirer.POST("/", middleware.ValidatePayment(), controller.Authorize)
 
 		// Get payment data
 		acquirer.GET("/:id", controller.Get)
