@@ -1,8 +1,8 @@
 package acquirer
 
 import (
-	"github.com/ingresse/payment/acquirer/stone"
 	g "github.com/ingresse/payment/gateway"
+	"github.com/ingresse/payment/gateway/acquirer/stone"
 )
 
 // ClientInterface is the interface for differents acquirers

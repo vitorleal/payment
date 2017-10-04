@@ -3,7 +3,8 @@ package gateway
 type (
 	// Payment represnet a new request payment data
 	Payment struct {
-		Id            string         `json:"id,omitempty"            binding:"required"`
+		Id            string         `json:"id,omitempty"`
+		ExternalId    string         `json:"externalId,omitempty"    binding:"required"`
 		Acquirer      string         `json:"acquirer,omitempty"      binding:"required,acquirer"`
 		Antifraud     []*Antifraud   `json:"antifraud,omitempty"     binding:"dive"`
 		MerchantId    string         `json:"merchantId,omitempty"    binding:"omitempty"`

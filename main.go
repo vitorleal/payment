@@ -1,26 +1,14 @@
 package main
 
 import (
-	"github.com/gin-gonic/gin"
-	"github.com/ingresse/payment/acquirer"
-	"github.com/ingresse/payment/gateway"
-	"github.com/ingresse/payment/middleware"
+	"github.com/ingresse/payment/server"
+	"runtime"
 )
 
 func main() {
-	server := gin.New()
+	// Max goroutine
+	runtime.GOMAXPROCS(runtime.NumCPU())
 
-	// Register Validations
-	gateway.RegisterValidations()
-
-	// General Middlewares
-	server.Use(gin.Logger())
-	server.Use(middleware.Cors())
-	//server.Use(middleware.Recovery())
-
-	// Routes
-	acquirer.Routes(server)
-
-	// Run server
-	server.Run()
+	// Start the API server
+	server.Start()
 }

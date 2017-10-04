@@ -3,7 +3,7 @@ package gateway
 import (
 	"fmt"
 	"github.com/gin-gonic/gin/binding"
-	"github.com/ingresse/payment/antifraud/siftscience"
+	"github.com/ingresse/payment/gateway/antifraud/siftscience"
 	validator "gopkg.in/go-playground/validator.v8"
 	"reflect"
 	"strings"

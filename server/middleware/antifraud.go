@@ -2,8 +2,8 @@ package middleware
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/ingresse/payment/antifraud/siftscience"
 	g "github.com/ingresse/payment/gateway"
+	"github.com/ingresse/payment/gateway/antifraud/siftscience"
 )
 
 // Antifraud is a middleware to validate customer
